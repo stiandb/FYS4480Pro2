@@ -230,11 +230,14 @@ print('Reference energy HE:', HE_ref_energy(2))
 print('Reference energy BE:', BE_ref_energy(4))
 """
 
+
+
 CCDsolve = CCD(2,TBME)
 CCDsolve.set_Z(2)
 states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
 CCDsolve.set_states(states)
 t,E = CCDsolve.solve_Energy(max_iter=50)
 print(E)
+print(t)
 
 

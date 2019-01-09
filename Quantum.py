@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class Quantum:
 	def __init__(self,n_fermi,TBME):
@@ -66,13 +67,29 @@ class Quantum:
 				expval += self.ijvkl(j,k,k,i) - self.ijvkl(j,k,i,k)
 		return(expval)
 	def pfq(self,p,q):
-		
-		return(self.ihj(q,p))
+		sum1 = 0
+		for i in range(self.n_fermi):
+			sum1 += self.ijvkl(p,i,q,i) - self.ijvkl(p,i,i,q)
+		return(self.ihj(p,q) + sum1)
 
 	def ijvklAS(self,i,j,k,l):
 		return(self.ijvkl(i,j,k,l) - self.ijvkl(i,j,l,k))
 
-
+	def ijvklHF(self,p,q,r,s):
+		n_basis = self.n_basis
+		pqvrs = 0
+		for alpha in range(n_basis):
+			for beta in range(n_basis):
+				for gamma in range(n_basis):
+					for delta in range(n_basis):
+						pqvrs += self.C[alpha,p]*self.C[beta,q]*self.C[gamma,r]*self.C[delta,s]\
+						*(self.ijvkl(alpha,beta,gamma,delta) - self.ijvkl(alpha,beta,delta,gamma))
+		return(pqvrs)
+	def pfqHF(self,p,q):
+		pfq = 0
+		if p == q:
+			pfg = self.ihj(p,p)
+		return(pfq)
 
 class CI(Quantum):
 	"""
@@ -148,33 +165,47 @@ class HF(Quantum):
 		return(self.e_1,self.C,self.H_hf, E)
 
 class CCD(Quantum):
+	"""
+	Find the Coupled Cluster doubles energy approximation
+	"""
 	def init(self):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
 		self.t = np.zeros((n_fermi,n_fermi,n_basis - n_fermi,n_basis - n_fermi))
 		self.t_new = np.ones((n_fermi,n_fermi,n_basis - n_fermi,n_basis - n_fermi))
 		for i in range(n_fermi):
-			for j in range(i,n_fermi):
+			for j in range(n_fermi):
 				for a in range(n_fermi,n_basis):
-					for b in range(a, n_basis):
+					for b in range(n_fermi,n_basis):
 						self.t[i,j,a - n_fermi,b - n_fermi] = self.ijvklAS(a,b,i,j)/(self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b))
+
+	def HF_basis(self,tol = 1e-8,max_iter=1000):
+		"""
+		Utilizes the HF-solution as basis states
+		"""
+		self.ijvklAS = self.ijvklHF
+		self.pfq = self.pfqHF
+		HFsolve = HF(self.n_fermi, self.TBME)
+		HFsolve.set_Z(self.Z)
+		HFsolve.set_states(self.states)
+		e,C,H,E = HFsolve.solve(tol,max_iter)
+		self.C = C
 
 	def t_update(self,i,j,a,b):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
-		g = 0
-		g += self.ijvkl(a,b,i,j)
+		g = self.ijvklAS(a,b,i,j)
 		sum1 = 0
 		for k in range(n_fermi):
 			if k != i:
-				sum1 += self.pfq(i,k)*self.t[j,k,a-n_fermi,b-n_fermi] - self.pfq(j,k)*self.t[i,k,a-n_fermi,b-n_fermi]
+				sum1 += self.pfq(k,i)*self.t[j,k,a-n_fermi,b-n_fermi] - self.pfq(k,j)*self.t[i,k,a-n_fermi,b-n_fermi]
 			for l in range(n_fermi):
 				sum1 += 0.5*self.ijvklAS(k,l,i,j)*self.t[k,l,a - n_fermi,b - n_fermi]
-			for c in range(n_basis - n_fermi):
+			for c in range(n_fermi,n_basis):
 				sum1 += self.ijvklAS(a,k,i,c)*self.t[j,k,b - n_fermi,c - n_fermi] - self.ijvklAS(b,k,i,c)*self.t[j,k,a - n_fermi,c - n_fermi]\
 				 - self.ijvklAS(a,k,j,c)*self.t[i,k,b - n_fermi,c - n_fermi] + self.ijvklAS(b,k,j,c)*self.t[i,k,a - n_fermi,c - n_fermi]
 				for l in range(n_fermi):
-					for d in range(n_basis-n_fermi):
+					for d in range(n_fermi,n_basis):
 						sum1 += 0.25*self.ijvklAS(k,l,c,d)*self.t[k,l,a-n_fermi,b-n_fermi]*self.t[i,j,c-n_fermi,d-n_fermi] \
 								-0.5*self.ijvklAS(k,l,c,d)*self.t[i,l,a-n_fermi,b-n_fermi]*self.t[k,j,c-n_fermi,d-n_fermi] \
 								+0.5*self.ijvklAS(k,l,c,d)*self.t[j,l,a-n_fermi,b-n_fermi]*self.t[k,i,c-n_fermi,d-n_fermi] \
@@ -182,11 +213,10 @@ class CCD(Quantum):
 								+self.ijvklAS(k,l,c,d)*self.t[i,k,b-n_fermi,c-n_fermi]*self.t[l,j,a-n_fermi,d-n_fermi] \
 								-0.5*self.ijvklAS(k,l,c,d)*self.t[i,j,a-n_fermi,c-n_fermi]*self.t[k,l,b-n_fermi,d-n_fermi] \
 								+0.5*self.ijvklAS(k,l,c,d)*self.t[i,j,b-n_fermi,c-n_fermi]*self.t[k,l,a-n_fermi,d-n_fermi]
-
-		for c in range(n_basis - n_fermi):
+		for c in range(n_fermi,n_basis):
 			if c != a:
-				sum1 -= self.pfq(c,a)*self.t[i,j,b-n_fermi,c-n_fermi] - self.pfq(c,b)*self.t[i,j,a-n_fermi,c-n_fermi]
-			for d in range(n_basis - n_fermi):
+				sum1 -= self.pfq(a,c)*self.t[i,j,b-n_fermi,c-n_fermi] - self.pfq(b,c)*self.t[i,j,a-n_fermi,c-n_fermi]
+			for d in range(n_fermi,n_basis):
 				sum1 += 0.5*self.ijvklAS(a,b,c,d)*self.t[i,j,c-n_fermi,d-n_fermi] 
 
 		g += sum1
@@ -195,12 +225,14 @@ class CCD(Quantum):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
 		for i in range(n_fermi):
-			for j in range(i,n_fermi):
+			for j in range(n_fermi):
 				for a in range(n_fermi,n_basis):
-					for b in range(a, n_basis):
+					for b in range(n_fermi,n_basis):
 						self.t_new[i,j,a - n_fermi,b - n_fermi] = self.t_update(i,j,a,b)
 
-	def solve_Amplitude(self,max_iter = 50, eps = 1e-10):
+
+
+	def solve_Amplitude(self,max_iter, eps):
 		self.init()
 		for i in range(max_iter):
 			self.iter()
