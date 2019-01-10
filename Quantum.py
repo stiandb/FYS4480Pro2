@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from tqdm import tqdm
 
 class Quantum:
 	def __init__(self,n_fermi,TBME):
@@ -76,20 +77,15 @@ class Quantum:
 		return(self.ijvkl(i,j,k,l) - self.ijvkl(i,j,l,k))
 
 	def ijvklHF(self,p,q,r,s):
-		n_basis = self.n_basis
-		pqvrs = 0
-		for alpha in range(n_basis):
-			for beta in range(n_basis):
-				for gamma in range(n_basis):
-					for delta in range(n_basis):
-						pqvrs += self.C[alpha,p]*self.C[beta,q]*self.C[gamma,r]*self.C[delta,s]\
-						*(self.ijvkl(alpha,beta,gamma,delta) - self.ijvkl(alpha,beta,delta,gamma))
-		return(pqvrs)
+		return(self.ijvklHFmat[p,q,r,s])
 	def pfqHF(self,p,q):
-		pfq = 0
 		if p == q:
-			pfg = self.ihj(p,p)
-		return(pfq)
+			sum1 = 0
+			for i in range(self.n_fermi):
+				sum1 += self.ijvkl(p,i,q,i) - self.ijvkl(p,i,i,q) #ASK
+			return(self.ihj(p,q) + sum1)
+		else:
+			return(0)
 
 class CI(Quantum):
 	"""
@@ -179,10 +175,13 @@ class CCD(Quantum):
 					for b in range(n_fermi,n_basis):
 						self.t[i,j,a - n_fermi,b - n_fermi] = self.ijvklAS(a,b,i,j)/(self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b))
 
+
 	def HF_basis(self,tol = 1e-8,max_iter=1000):
 		"""
 		Utilizes the HF-solution as basis states
 		"""
+		print('Calculating HF-basis')
+		n_basis = self.n_basis
 		self.ijvklAS = self.ijvklHF
 		self.pfq = self.pfqHF
 		HFsolve = HF(self.n_fermi, self.TBME)
@@ -190,12 +189,26 @@ class CCD(Quantum):
 		HFsolve.set_states(self.states)
 		e,C,H,E = HFsolve.solve(tol,max_iter)
 		self.C = C
+		self.ijvklHFmat = np.zeros((n_basis,n_basis,n_basis,n_basis))
+		for p in tqdm(range(n_basis)):
+			for q in range(n_basis):
+				for r in range(n_basis):
+					for s in range(n_basis):
+						pqvrs = 0
+						for alpha in range(n_basis):
+							for beta in range(n_basis):
+								for gamma in range(n_basis):
+									for delta in range(n_basis):
+										pqvrs += self.C[alpha,p]*self.C[beta,q]*self.C[gamma,r]*self.C[delta,s]\
+										*(self.ijvkl(alpha,beta,gamma,delta) - self.ijvkl(alpha,beta,delta,gamma))
+						self.ijvklHFmat[p,q,r,s] = pqvrs
 
 	def t_update(self,i,j,a,b):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
 		g = self.ijvklAS(a,b,i,j)
 		sum1 = 0
+		
 		for k in range(n_fermi):
 			if k != i:
 				sum1 += self.pfq(k,i)*self.t[j,k,a-n_fermi,b-n_fermi] - self.pfq(k,j)*self.t[i,k,a-n_fermi,b-n_fermi]
@@ -218,9 +231,9 @@ class CCD(Quantum):
 				sum1 -= self.pfq(a,c)*self.t[i,j,b-n_fermi,c-n_fermi] - self.pfq(b,c)*self.t[i,j,a-n_fermi,c-n_fermi]
 			for d in range(n_fermi,n_basis):
 				sum1 += 0.5*self.ijvklAS(a,b,c,d)*self.t[i,j,c-n_fermi,d-n_fermi] 
-
 		g += sum1
 		return(g/(self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b)))
+
 	def iter(self):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
@@ -230,14 +243,13 @@ class CCD(Quantum):
 					for b in range(n_fermi,n_basis):
 						self.t_new[i,j,a - n_fermi,b - n_fermi] = self.t_update(i,j,a,b)
 
-
-
 	def solve_Amplitude(self,max_iter, eps):
 		self.init()
-		for i in range(max_iter):
+		print('Calculating t')
+		for i in tqdm(range(max_iter)):
 			self.iter()
 			"""
-			if np.fabs(np.sum(self.t_new - self.t)) <= eps:
+			if np.sum(np.fabs(self.t_new - self.t)) <= eps:
 				self.t = self.t_new
 				print('<eps')
 				break
