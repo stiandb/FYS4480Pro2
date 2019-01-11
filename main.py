@@ -237,8 +237,14 @@ CCDsolve.set_Z(2)
 states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
 CCDsolve.set_states(states)
 CCDsolve.HF_basis()
+
+
+
+
 t,E = CCDsolve.solve_Energy(max_iter=1000)
 print(E)
-print(t)
+	
+
+
 
 
