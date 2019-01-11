@@ -82,11 +82,25 @@ class Quantum:
 		if p == q:
 			sum1 = 0
 			for i in range(self.n_fermi):
-				sum1 += self.ijvkl(p,i,q,i) - self.ijvkl(p,i,i,q) #ASK
-			return(self.ihj(p,q) + sum1)
+				sum1 += self.ijvklHF(p,i,q,i)
+			for alpha in range(self.n_basis):
+				for beta in range(self.n_basis):
+					sum1 += self.C[p,alpha]*self.C[q,beta]*self.ihj(alpha,beta)
+			return(sum1)
 		else:
 			return(0)
-
+	def cHcHF(self):
+		expval = 0
+		for i in range(self.n_fermi):
+			for alpha in range(self.n_basis):
+				for beta in range(self.n_basis):
+					expval += self.C[i,alpha]*self.C[i,beta]*self.ihj(alpha,beta)
+					for j in range(self.n_fermi):
+						for gamma in range(self.n_basis):
+							for delta in range(self.n_basis):
+								expval += 0.5*self.C[i,alpha]*self.C[j,beta]*self.C[i,gamma]*self.C[j,delta]\
+										*(self.ijvkl(alpha,beta,gamma,delta) - self.ijvkl(alpha,beta,delta,gamma))
+		return(expval)
 class CI(Quantum):
 	"""
 	Find CI (singles) approximation of eigenstates of the Hamiltonian
@@ -167,15 +181,27 @@ class CCD(Quantum):
 	def init(self):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
+		self.o = slice(0,n_fermi)
+		self.v = slice(n_fermi,n_basis)
 		self.t = np.zeros((n_fermi,n_fermi,n_basis - n_fermi,n_basis - n_fermi))
 		self.t_new = np.ones((n_fermi,n_fermi,n_basis - n_fermi,n_basis - n_fermi))
+		self.f_pq = np.zeros((n_basis,n_basis))
+		self.ijvklmat = np.zeros((n_basis,n_basis,n_basis,n_basis))
+		self.Dijab = np.zeros((n_fermi,n_fermi,n_basis - n_fermi,n_basis - n_fermi))
 		for i in range(n_fermi):
 			for j in range(n_fermi):
 				for a in range(n_fermi,n_basis):
 					for b in range(n_fermi,n_basis):
-						self.t[i,j,a - n_fermi,b - n_fermi] = self.ijvklAS(a,b,i,j)/(self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b))
+						self.Dijab[i,j,a-n_fermi,b-n_fermi] = self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b)
+						self.t[i,j,a - n_fermi,b - n_fermi] = self.ijvklAS(a,b,i,j)/self.Dijab[i,j,a-n_fermi,b-n_fermi]
+		for p in range(n_basis):
+			for q in range(n_basis):
+				self.f_pq[p,q] = self.pfq(p,q)
+				for r in range(n_basis):
+					for s in range(n_basis):
+						self.ijvklmat[p,q,r,s] = self.ijvklAS(p,q,r,s)
 
-
+		
 	def HF_basis(self,tol = 1e-8,max_iter=1000):
 		"""
 		Utilizes the HF-solution as basis states
@@ -184,6 +210,7 @@ class CCD(Quantum):
 		n_basis = self.n_basis
 		self.ijvklAS = self.ijvklHF
 		self.pfq = self.pfqHF
+		self.cHc = self.cHcHF
 		HFsolve = HF(self.n_fermi, self.TBME)
 		HFsolve.set_Z(self.Z)
 		HFsolve.set_states(self.states)
@@ -199,72 +226,64 @@ class CCD(Quantum):
 							for beta in range(n_basis):
 								for gamma in range(n_basis):
 									for delta in range(n_basis):
-										pqvrs += self.C[alpha,p]*self.C[beta,q]*self.C[gamma,r]*self.C[delta,s]\
+										pqvrs += self.C[p,alpha]*self.C[q,beta]*self.C[r,gamma]*self.C[s,delta]\
 										*(self.ijvkl(alpha,beta,gamma,delta) - self.ijvkl(alpha,beta,delta,gamma))
 						self.ijvklHFmat[p,q,r,s] = pqvrs
-
-	def t_update(self,i,j,a,b):
+	
+	def t_update(self,f_pq,ijvklmat,t):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
-		g = self.ijvklAS(a,b,i,j)
-		sum1 = 0
-		
-		for k in range(n_fermi):
-			if k != i:
-				sum1 += self.pfq(k,i)*self.t[j,k,a-n_fermi,b-n_fermi] - self.pfq(k,j)*self.t[i,k,a-n_fermi,b-n_fermi]
-			for l in range(n_fermi):
-				sum1 += 0.5*self.ijvklAS(k,l,i,j)*self.t[k,l,a - n_fermi,b - n_fermi]
-			for c in range(n_fermi,n_basis):
-				sum1 += self.ijvklAS(a,k,i,c)*self.t[j,k,b - n_fermi,c - n_fermi] - self.ijvklAS(b,k,i,c)*self.t[j,k,a - n_fermi,c - n_fermi]\
-				 - self.ijvklAS(a,k,j,c)*self.t[i,k,b - n_fermi,c - n_fermi] + self.ijvklAS(b,k,j,c)*self.t[i,k,a - n_fermi,c - n_fermi]
-				for l in range(n_fermi):
-					for d in range(n_fermi,n_basis):
-						sum1 += 0.25*self.ijvklAS(k,l,c,d)*self.t[k,l,a-n_fermi,b-n_fermi]*self.t[i,j,c-n_fermi,d-n_fermi] \
-								-0.5*self.ijvklAS(k,l,c,d)*self.t[i,l,a-n_fermi,b-n_fermi]*self.t[k,j,c-n_fermi,d-n_fermi] \
-								+0.5*self.ijvklAS(k,l,c,d)*self.t[j,l,a-n_fermi,b-n_fermi]*self.t[k,i,c-n_fermi,d-n_fermi] \
-								-self.ijvklAS(k,l,c,d)*self.t[i,k,a-n_fermi,c-n_fermi]*self.t[l,j,b-n_fermi,d-n_fermi] \
-								+self.ijvklAS(k,l,c,d)*self.t[i,k,b-n_fermi,c-n_fermi]*self.t[l,j,a-n_fermi,d-n_fermi] \
-								-0.5*self.ijvklAS(k,l,c,d)*self.t[i,j,a-n_fermi,c-n_fermi]*self.t[k,l,b-n_fermi,d-n_fermi] \
-								+0.5*self.ijvklAS(k,l,c,d)*self.t[i,j,b-n_fermi,c-n_fermi]*self.t[k,l,a-n_fermi,d-n_fermi]
-		for c in range(n_fermi,n_basis):
-			if c != a:
-				sum1 -= self.pfq(a,c)*self.t[i,j,b-n_fermi,c-n_fermi] - self.pfq(b,c)*self.t[i,j,a-n_fermi,c-n_fermi]
-			for d in range(n_fermi,n_basis):
-				sum1 += 0.5*self.ijvklAS(a,b,c,d)*self.t[i,j,c-n_fermi,d-n_fermi] 
-		g += sum1
-		return(g/(self.pfq(i,i) + self.pfq(j,j) - self.pfq(a,a) - self.pfq(b,b)))
+		o = self.o
+		v = self.v
+		f_zeros = f_pq.copy()
+		f_zeros[np.diag_indices_from(f_zeros)] = 0
+		rhs = ijvklmat[o,o,v,v].copy()
 
-	def iter(self):
-		n_fermi = self.n_fermi
-		n_basis = self.n_basis
-		for i in range(n_fermi):
-			for j in range(n_fermi):
-				for a in range(n_fermi,n_basis):
-					for b in range(n_fermi,n_basis):
-						self.t_new[i,j,a - n_fermi,b - n_fermi] = self.t_update(i,j,a,b)
-
+		term = np.einsum('ki,jkab->ijab',f_zeros[o,o],t)
+		term -= term.swapaxes(0,1)
+		rhs += term
+		term = -np.einsum('ac,ijbc->ijab',f_zeros[v,v],t)
+		term -= term.swapaxes(2,3)
+		rhs += term
+		term = 0.5*np.einsum('klij,klab->ijab',ijvklmat[o,o,o,o],t)
+		rhs += term
+		term = np.einsum('akic,jkbc->ijab',ijvklmat[v,o,o,v],t)
+		term -= term.swapaxes(0,1)
+		term -= term.swapaxes(2,3)
+		rhs += term
+		term = 0.5*np.einsum('abcd,ijcd->ijab',ijvklmat[v,v,v,v],t)
+		rhs += term
+		term = 0.25*np.einsum('klcd,klab,ijcd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+		rhs += term
+		term = -0.5*np.einsum('klcd,ilab,kjcd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+		term -= term.swapaxes(0,1)
+		rhs += term
+		term = -np.einsum('klcd,ikac,ljbd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+		term -= term.swapaxes(2,3)
+		rhs += term
+		term = -0.5*np.einsum('klcd,ijac,klbd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+		term -= term.swapaxes(2,3)
+		rhs += term
+		return(rhs)
 	def solve_Amplitude(self,max_iter, eps):
 		self.init()
 		print('Calculating t')
-		for i in tqdm(range(max_iter)):
-			self.iter()
-			"""
+		for i in range(max_iter):
+			self.t_new = self.t_update(self.f_pq,self.ijvklmat,self.t)/self.Dijab
 			if np.sum(np.fabs(self.t_new - self.t)) <= eps:
-				self.t = self.t_new
-				print('<eps')
+				self.t = self.t_new.copy()
+				print('\n <eps: iteration: ',i)
 				break
-			"""
-			self.t = self.t_new
+			
+			self.t = self.t_new.copy()
 	def solve_Energy(self,max_iter = 50, eps = 1e-10):
 		n_fermi = self.n_fermi
 		n_basis = self.n_basis
 		self.solve_Amplitude(max_iter = max_iter, eps = eps)
+		o = self.o
+		v = self.v
 		E = self.cHc()
-		for i in range(n_fermi):
-			for j in range(n_fermi):
-				for a in range(n_fermi,n_basis):
-					for b in range(n_fermi, n_basis):
-						E += 0.25*self.ijvklAS(i,j,a,b)*self.t[i,j,a - n_fermi,b - n_fermi]
+		E += 0.25*np.einsum('ijab,ijab->',self.ijvklmat[o,o,v,v],self.t)
 		return(self.t,E)
 
 
