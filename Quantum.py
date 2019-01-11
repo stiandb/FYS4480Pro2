@@ -267,6 +267,8 @@ class CCD(Quantum):
 		return(rhs)
 	def solve_Amplitude(self,max_iter, eps):
 		self.init()
+		E = self.cHc() + 0.25*np.einsum('ijab,ijab->',self.ijvklmat[self.o,self.o,self.v,self.v],self.t)
+		print('Initial energy: ',E,'\n')
 		print('Calculating t')
 		for i in range(max_iter):
 			self.t_new = self.t_update(self.f_pq,self.ijvklmat,self.t)/self.Dijab

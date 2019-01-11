@@ -58,34 +58,35 @@ print("ECCD (initial guess): %g" % ECCD)
 def CCD_rhs(f,uAS,t):
     #Eq 23
     rhs = uAS[hole,hole,part,part].copy() #u[a,b,i,j] = u[i,j,a,b]
-    ijvklmat = uAS
-    f_zeros = f
-    o = hole
-    v = part
-    rhs = ijvklmat[o,o,v,v]
-    term = np.einsum('ki,jkab->ijab',f_zeros[o,o],t)
+    
+    term = np.einsum('ki,jkab->ijab',f[hole,hole],t)
     term -= term.swapaxes(0,1)
     rhs += term
-    term = -np.einsum('ac,ijbc->ijab',f_zeros[v,v],t)
+    
+    term = np.einsum('ac,ijbc->ijab',f[part,part],t)
     term -= term.swapaxes(2,3)
-    rhs += term
-    term = 0.5*np.einsum('klij,klab->ijab',ijvklmat[o,o,o,o],t)
-    rhs += term
-    term = np.einsum('akic,jkbc->ijab',ijvklmat[v,o,o,v],t)
+    rhs -= term
+    
+    rhs += 0.5*np.einsum('klij,klab->ijab',uAS[hole,hole,hole,hole],t)
+
+    term = np.einsum('akic,jkbc->ijab',uAS[part,hole,hole,part],t)
     term -= term.swapaxes(0,1)
     term -= term.swapaxes(2,3)
     rhs += term
-    term = 0.5*np.einsum('abcd,ijcd->ijab',ijvklmat[v,v,v,v],t)
-    rhs += term
-    term = 0.25*np.einsum('klcd,klab,ijcd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
-    rhs += term
-    term = -0.5*np.einsum('klcd,ilab,kjcd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+    
+    rhs += 0.5*np.einsum('abcd,ijcd->ijab',uAS[part,part,part,part],t)
+
+    rhs += 0.25*np.einsum('klcd,klab,ijcd->ijab',uAS[hole,hole,part,part],t,t,optimize=True)
+
+    term = -0.5*np.einsum('klcd,ilab,kjcd->ijab',uAS[hole,hole,part,part],t,t,optimize=True)
     term -= term.swapaxes(0,1)
     rhs += term
-    term = -np.einsum('klcd,ikac,ljbd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+    
+    term = -np.einsum('klcd,ikac,ljbd->ijab',uAS[hole,hole,part,part],t,t,optimize=True)
     term -= term.swapaxes(2,3)
     rhs += term
-    term = -0.5*np.einsum('klcd,ijac,klbd->ijab',ijvklmat[o,o,v,v],t,t,optimize=True)
+    
+    term = -0.5*np.einsum('klcd,ijac,klbd->ijab',uAS[hole,hole,part,part],t,t,optimize=True)
     term -= term.swapaxes(2,3)
     rhs += term
     
@@ -99,4 +100,4 @@ for i in range(0,max_iters):
     t = rhs_new/Dijab
     Ecorr = 0.25*np.einsum('ijab,ijab->',uAS[hole,hole,part,part],t)
     ECCD  = Eref+Ecorr
-    print("ECCD (initial guess):", ECCD)
+print("Final ECCD: ", ECCD)

@@ -232,16 +232,16 @@ print('Reference energy BE:', BE_ref_energy(4))
 
 
 
-CCDsolve = CCD(2,TBME)
-CCDsolve.set_Z(2)
+CCDsolve = CCD(4,TBME)
+CCDsolve.set_Z(4)
 states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
 CCDsolve.set_states(states)
-CCDsolve.HF_basis()
+#CCDsolve.HF_basis()
 
 
 
 
-t,E = CCDsolve.solve_Energy(max_iter=1000)
+t,E = CCDsolve.solve_Energy(max_iter=1000, eps=1e-8)
 print(E)
 	
 
