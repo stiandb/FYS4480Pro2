@@ -1,0 +1,304 @@
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=1]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		
+		% Hamiltonian
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1.5,0);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (0.5,-1) -- (0,0);
+		\draw [postaction={decorate}] (2,-1) -- (1.5,0);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (0,0) -- (-0.5,-1);
+		\draw [postaction={decorate}] (1.5,0) -- (1,-1);
+		
+		
+		% Draw connection lines
+		\draw (0.5,-1) [dotted] -- (1,-2);
+		\draw (1,-1) [dotted] -- (0.5,-2);
+		\draw (-0.5,-1) [dotted] -- (-1,-2);
+		\draw (2,-1) [dotted] -- (2.5,-2);
+		
+		
+		% Left T2
+		% Draw vertex line
+		\draw (0,-3) [dashed] -- (-1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-1,-2) -- (-1.5,-3);
+		\draw [postaction={decorate}] (0.5,-2) -- (0,-3);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (-1.5,-3) -- (-2,-2) node[midway, left] (a){a};
+		\draw [postaction={decorate}] (0,-3) -- (-0.5,-2) node[midway, left] (b){b};
+		
+		
+		% Right T2
+		% Draw vertex line
+		\draw (3,-3) [dashed] -- (1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (2,-2) -- (1.5,-3) node[midway, right] (i){i};
+		\draw [postaction={decorate}] (3.5,-2) -- (3,-3) node[midway, right] (j){j};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (1.5,-3) -- (1,-2);
+		\draw [postaction={decorate}] (3,-3) -- (2.5,-2);
+		
+		
+		% Draw vertex point
+		%\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:a}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=1]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		
+		% Hamiltonian
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1.5,0);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		\draw [postaction={decorate}] (1,-1) -- (1.5,0);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (0,0) -- (0.5,-1);
+		\draw [postaction={decorate}] (1.5,0) -- (2,-1);
+		
+		
+		% Draw connection lines
+		\draw (0.5,-1) [dotted] -- (0.5,-2);
+		\draw (1,-1) [dotted] -- (1,-2);
+		\draw (-0.5,-1) [dotted] -- (-0.5,-2);
+		\draw (2,-1) [dotted] -- (2,-2);
+		
+		
+		% Left T2
+		% Draw vertex line
+		\draw (0,-3) [dashed] -- (-1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-1,-2) -- (-1.5,-3) node[midway, right] (i){i};
+		\draw [postaction={decorate}] (0.5,-2) -- (0,-3);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (-1.5,-3) -- (-2,-2) node[midway, left] (a){a};
+		\draw [postaction={decorate}] (0,-3) -- (-0.5,-2);
+		
+		
+		% Right T2
+		% Draw vertex line
+		\draw (3,-3) [dashed] -- (1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (2,-2) -- (1.5,-3);
+		\draw [postaction={decorate}] (3.5,-2) -- (3,-3) node[midway, right] (j){j};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (1.5,-3) -- (1,-2);
+		\draw [postaction={decorate}] (3,-3) -- (2.5,-2) node[midway, left] (b){b};
+		
+		
+		% Draw vertex point
+		%\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:b}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=1]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		
+		% Hamiltonian
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1.5,0);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		\draw [postaction={decorate}] (1,-1) -- (1.5,0);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (0,0) -- (0.5,-1);
+		\draw [postaction={decorate}] (1.5,0) -- (2,-1);
+		
+		
+		% Draw connection lines
+		\draw (-0.5,-1) [dotted] -- (-2,-2);
+		\draw (0.5,-1) [dotted] -- (-1,-2);
+		\draw (2,-1) [dotted] -- (0.5,-2);
+		\draw (1,-1) [dotted] -- (1,-2);
+		
+		
+		% Left T2
+		% Draw vertex line
+		\draw (0,-3) [dashed] -- (-1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-1,-2) -- (-1.5,-3);
+		\draw [postaction={decorate}] (0.5,-2) -- (0,-3);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (-1.5,-3) -- (-2,-2);
+		\draw [postaction={decorate}] (0,-3) -- (-0.5,-2) node[midway, left] (a){a};
+		
+		
+		% Right T2
+		% Draw vertex line
+		\draw (3,-3) [dashed] -- (1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (2,-2) -- (1.5,-3) node[midway, right] (i){i};
+		\draw [postaction={decorate}] (3.5,-2) -- (3,-3) node[midway, right] (j){j};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (1.5,-3) -- (1,-2);
+		\draw [postaction={decorate}] (3,-3) -- (2.5,-2) node[midway, left] (b){b};
+		
+		
+		% Draw vertex point
+		%\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:c}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=1]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		
+		% Hamiltonian
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1.5,0);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		\draw [postaction={decorate}] (1,-1) -- (1.5,0);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (0,0) -- (0.5,-1);
+		\draw [postaction={decorate}] (1.5,0) -- (2,-1);
+		
+		
+		% Draw connection lines
+		\draw (-0.5,-1) [dotted] -- (-2,-2);
+		\draw (0.5,-1) [dotted] -- (-1,-2);
+		\draw (1,-1) [dotted] -- (-0.5,-2);
+		\draw (2,-1) [dotted] -- (2,-2);
+		
+		
+		% Left T2
+		% Draw vertex line
+		\draw (0,-3) [dashed] -- (-1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-1,-2) -- (-1.5,-3);
+		\draw [postaction={decorate}] (0.5,-2) -- (0,-3) node[midway, right] (i){i};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (-1.5,-3) -- (-2,-2);
+		\draw [postaction={decorate}] (0,-3) -- (-0.5,-2);
+		
+		
+		% Right T2
+		% Draw vertex line
+		\draw (3,-3) [dashed] -- (1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (2,-2) -- (1.5,-3);
+		\draw [postaction={decorate}] (3.5,-2) -- (3,-3) node[midway, right] (j){j};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (1.5,-3) -- (1,-2) node[midway, left] (a){a};
+		\draw [postaction={decorate}] (3,-3) -- (2.5,-2) node[midway, left] (b){b};
+		
+		
+		% Draw vertex point
+		%\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:d}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=1.2]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		
+		% Hamiltonian
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1.5,0);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		\draw [postaction={decorate}] (1,-1) -- (1.5,0);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (0,0) -- (0.5,-1);
+		\draw [postaction={decorate}] (1.5,0) -- (2,-1);
+		
+		
+		% Draw connection lines
+		\draw (-0.5,-1) [dotted] -- (-2,-2);
+		\draw (0.5,-1) [dotted] -- (-1,-2);
+		\draw (1,-1) [dotted] -- (-0.5,-2);
+		\draw (2,-1) [dotted] -- (0.5,-2);
+		
+		
+		% Left T2
+		% Draw vertex line
+		\draw (0,-3) [dashed] -- (-1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (-1,-2) -- (-1.5,-3);
+		\draw [postaction={decorate}] (0.5,-2) -- (0,-3);
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (-1.5,-3) -- (-2,-2);
+		\draw [postaction={decorate}] (0,-3) -- (-0.5,-2);
+		
+		
+		% Right T2
+		% Draw vertex line
+		\draw (3,-3) [dashed] -- (1.5,-3);
+		
+		% Draw incoming lines
+		\draw [postaction={decorate}] (2,-2) -- (1.5,-3) node[midway, right] (i){i};
+		\draw [postaction={decorate}] (3.5,-2) -- (3,-3) node[midway, right] (j){j};
+		
+		% Draw outgoing lines
+		\draw [postaction={decorate}] (1.5,-3) -- (1,-2) node[midway, left] (a){a};
+		\draw [postaction={decorate}] (3,-3) -- (2.5,-2) node[midway, left] (b){b};
+		
+		
+		% Draw vertex point
+		%\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:e}
+\end{figure}
