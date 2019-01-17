@@ -1,0 +1,63 @@
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}[scale=0.9]
+		\begin{scope}[decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1,0);
+		
+		% Draw incoming line
+		\draw [postaction={decorate}] (-0.5,1) -- (0,0);
+		
+		% Draw outgoing line
+		\draw [postaction={decorate}] (0,0) -- (-0.5,-1);
+		
+		% Draw vertex point
+		\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\begin{scope}[xshift=4cm, decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1,0);
+		
+		% Draw outgoing line
+		\draw [postaction={decorate}] (0,0) -- (-0.5,1);
+		
+		% Draw incoming line
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		
+		% Draw vertex point
+		\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\begin{scope}[xshift=8cm, decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1,0);
+		
+		% Draw outgoing line
+		\draw [postaction={decorate}] (0,0) -- (0.5,-1);
+		
+		% Draw incoming line
+		\draw [postaction={decorate}] (-0.5,-1) -- (0,0);
+		
+		% Draw vertex point
+		\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		
+		\begin{scope}[xshift=12cm, decoration={markings,mark=at position 0.6 with {\arrow[scale=2,>=stealth]{>}}}]
+		% Draw vertex line
+		\draw (0,0) [dashed] -- (1,0);
+		
+		% Draw outgoing line
+		\draw [postaction={decorate}] (0,0) -- (-0.5,1);
+		
+		% Draw incoming line
+		\draw [postaction={decorate}] (0.5,1) -- (0,0);
+		
+		% Draw vertex point
+		\filldraw (1,0) circle (0.05cm);
+		\end{scope}
+		\end{tikzpicture}
+	\end{center}
+	%\caption{Ground state of Helium.}
+	\label{fig:three}
+\end{figure}
