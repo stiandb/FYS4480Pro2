@@ -200,13 +200,24 @@ class CCD(Quantum):
 				for r in range(n_basis):
 					for s in range(n_basis):
 						self.ijvklmat[p,q,r,s] = self.ijvklAS(p,q,r,s)
+		#Check if Fock matrix is diagonal
+		try:
+			if self.HFbas:
+				f = self.f_pq - np.diag(np.diag(self.f_pq))
+				if np.sum(np.fabs(f)) > 1e-16:
+					print('Error: fock matrix not diagonal in HF basis')
+					print(f)
+					exit()
+		except AttributeError:
+			None
 
 		
 	def HF_basis(self,tol = 1e-8,max_iter=1000):
 		"""
 		Utilizes the HF-solution as basis states
+		Call this function before solve_Energy() to compute the energy in HF basis.
 		"""
-		print('Calculating HF-basis')
+		self.HFbas = True
 		n_basis = self.n_basis
 		self.ijvklAS = self.ijvklHF
 		self.pfq = self.pfqHF
@@ -217,7 +228,7 @@ class CCD(Quantum):
 		e,C,H,E = HFsolve.solve(tol,max_iter)
 		self.C = C
 		self.ijvklHFmat = np.zeros((n_basis,n_basis,n_basis,n_basis))
-		for p in tqdm(range(n_basis)):
+		for p in range(n_basis):
 			for q in range(n_basis):
 				for r in range(n_basis):
 					for s in range(n_basis):
@@ -238,7 +249,6 @@ class CCD(Quantum):
 		f_zeros = f_pq.copy()
 		f_zeros[np.diag_indices_from(f_zeros)] = 0
 		rhs = ijvklmat[o,o,v,v].copy()
-
 		term = np.einsum('ki,jkab->ijab',f_zeros[o,o],t)
 		term -= term.swapaxes(0,1)
 		rhs += term
@@ -267,14 +277,20 @@ class CCD(Quantum):
 		return(rhs)
 	def solve_Amplitude(self,max_iter, eps):
 		self.init()
-		print('Calculating t')
+		self.E_MBPT = None
+		self.CCD_convergence = False
+		try:
+			if self.HFbas:
+				None
+		except AttributeError:
+			self.E_MBPT = self.cHc() + 0.25*np.einsum('ijab,ijab->',self.ijvklmat[self.o,self.o,self.v,self.v],self.t)
+
 		for i in range(max_iter):
 			self.t_new = self.t_update(self.f_pq,self.ijvklmat,self.t)/self.Dijab
 			if np.sum(np.fabs(self.t_new - self.t)) <= eps:
 				self.t = self.t_new.copy()
-				print('\n <eps: iteration: ',i)
+				self.CCD_convergence = True
 				break
-			
 			self.t = self.t_new.copy()
 	def solve_Energy(self,max_iter = 50, eps = 1e-10):
 		n_fermi = self.n_fermi
@@ -284,7 +300,9 @@ class CCD(Quantum):
 		v = self.v
 		E = self.cHc()
 		E += 0.25*np.einsum('ijab,ijab->',self.ijvklmat[o,o,v,v],self.t)
-		return(self.t,E)
+		if not self.CCD_convergence:
+			print('CCD did not converge')
+		return(self.t,E,self.E_MBPT)
 
 
 		

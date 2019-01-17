@@ -1,24 +1,5 @@
 from Quantum import *
 from matplotlib.pylab import*
-float_formatter = lambda x: "%.3f" % x
-np.set_printoptions(formatter={'float_kind':float_formatter})
-
-
-def bmatrix(a):
-    """Returns a LaTeX bmatrix
-
-    :a: numpy array
-    :returns: LaTeX bmatrix as a string
-    """
-    if len(a.shape) > 2:
-        raise ValueError('bmatrix can at most display two dimensions')
-    lines = str(a).replace('[', '').replace(']', '').splitlines()
-    rv = [r'\begin{bmatrix}']
-    rv += ['  ' + ' & '.join(l.split()) + r'\\' for l in lines]
-    rv +=  [r'\end{bmatrix}']
-    return('\n'.join(rv))
-
-
 
 
 def TBME(Z):
@@ -112,123 +93,6 @@ def TBME(Z):
 	u[2,2,2,1] = (6890942464*np.sqrt(2/3)*Z)/1210689028125.0
 	u[2,2,2,2] = (17*Z)/256.0
 	return(u)
-"""
-states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
-Z = 2
-HeliumCI = CI(2,TBME)
-HeliumCI.set_states(states)
-HeliumCI.set_Z(Z)
-e,u,H = HeliumCI.solve()
-print("CI Helium")
-print(e[0])
-print(e)
-print(bmatrix(H) + '\n')
-print('-------------------------')
-HeliumHF = HF(2,TBME)
-HeliumHF.set_states(states)
-HeliumHF.set_Z(Z)
-e, C, H, E = HeliumHF.solve(max_iter=1)
-print('HF Helium')
-print('One iteration')
-print(E)
-print(bmatrix(H) + '\n')
-e,C,H,E = HeliumHF.solve()
-print('Convergence')
-print(E)
-print(bmatrix(H) + '\n')
-
-
-BerylliumCI = CI(4,TBME)
-BerylliumCI.set_states(states)
-Z = 4
-BerylliumCI.set_Z(Z)
-e,u,H = BerylliumCI.solve()
-print('CI Beryllium')
-print(e[0])
-print(e)
-print(bmatrix(H) + '\n')
-BerylliumHF = HF(4,TBME)
-BerylliumHF.set_states(states)
-BerylliumHF.set_Z(Z)
-e,C,H,E = BerylliumHF.solve(max_iter=1)
-print('HF Beryllium')
-print('One iteration')
-print(E)
-print(bmatrix(H) + '\n')
-e,C,H,E = BerylliumHF.solve()
-print('Convergence')
-print(E)
-print(bmatrix(H) + '\n')
-
-
-def HE_ref_energy(Z):
-	return((5/8 - Z)*Z)
-
-def BE_ref_energy(Z):
-	return((586373/373248 - 5/4*Z)*Z)
-
-Z = np.linspace(0,2,50)
-
-EHE = HE_ref_energy(Z)
-EBE = BE_ref_energy(Z)
-
-CIEHE = np.zeros(len(Z))
-HFEHE = np.zeros(len(Z))
-CIEBE = np.zeros(len(Z))
-HFEBE = np.zeros(len(Z))
-real_energy_HE = -2.9037*np.ones(len(Z))
-real_energy_BE = -14.6674*np.ones(len(Z))
-
-for i,Zz in enumerate(Z):
-	HeliumCI = CI(2,TBME)
-	HeliumCI.set_states(states)
-	HeliumCI.set_Z(Zz)
-	e,u,H = HeliumCI.solve()
-	CIEHE[i] = e[0]
-
-	HeliumHF = HF(2,TBME)
-	HeliumHF.set_states(states)
-	HeliumHF.set_Z(Zz)
-	e, C, H, E = HeliumHF.solve()
-	HFEHE[i] = E
-
-	BerylliumCI = CI(4,TBME)
-	BerylliumCI.set_states(states)
-	BerylliumCI.set_Z(Zz)
-	e,u,H = BerylliumCI.solve()
-	CIEBE[i] = e[0]
-
-	BerylliumHF = HF(4,TBME)
-	BerylliumHF.set_states(states)
-	BerylliumHF.set_Z(Zz)
-	e,C,H,E = BerylliumHF.solve()
-	HFEBE[i] = E
-	
-
-
-plot(Z,EHE,label='Reference Energy')
-plot(Z,CIEHE,label='CI')
-plot(Z,HFEHE,label='HF')
-plot(Z,real_energy_HE,'--k')
-legend()
-xlabel('Z - Number of protons')
-ylabel('Energy [a.u]')
-title("Two electrons")
-show()
-
-plot(Z,EBE,label='Reference Energy')
-plot(Z,CIEBE,label='CI')
-plot(Z,HFEBE,label='HF')
-plot(Z,real_energy_BE,'--k')
-legend()
-xlabel('Z - Number of protons')
-ylabel('Energy [a.u]')
-title("Four electrons")
-show()
-
-print('Reference energy HE:', HE_ref_energy(2))
-print('Reference energy BE:', BE_ref_energy(4))
-"""
 
 
 
@@ -236,13 +100,40 @@ CCDsolve = CCD(2,TBME)
 CCDsolve.set_Z(2)
 states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
 CCDsolve.set_states(states)
+t,E,E_MBPT = CCDsolve.solve_Energy(max_iter=1000)
+
+print('CCD Helium Energy = ', E)
+print('MBPT Helium Energy', E_MBPT)
+
+CCDsolve = CCD(2,TBME)
+CCDsolve.set_Z(2)
+states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
+CCDsolve.set_states(states)
 CCDsolve.HF_basis()
+t,E,E_MBPT = CCDsolve.solve_Energy(max_iter=1000)
+
+print('CCD Helium Energy (HF) = ', E)
+
+CCDsolve = CCD(4,TBME)
+CCDsolve.set_Z(4)
+states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
+CCDsolve.set_states(states)
+t,E,E_MBPT = CCDsolve.solve_Energy(max_iter=1000)
+
+print('CCD BE Energy = ', E)
+print('MBPT BE Energy', E_MBPT)
+
+CCDsolve = CCD(4,TBME)
+CCDsolve.set_Z(4)
+states = np.array([[1,1],[1,0],[2,1],[2,0],[3,1],[3,0]])
+CCDsolve.set_states(states)
+CCDsolve.HF_basis()
+t,E,E_MBPT = CCDsolve.solve_Energy(max_iter=1000)
+
+print('CCD BE Energy (HF) = ', E)
 
 
 
-
-t,E = CCDsolve.solve_Energy(max_iter=1000)
-print(E)
 	
 
 
